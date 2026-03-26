@@ -63,14 +63,23 @@ export default function ScannerScreen({ onScanSuccess, onClose }: ScannerScreenP
     return () => {
       isUnmounted = true;
       clearTimeout(timer);
-      if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().catch((err: unknown) => console.error("Cleanup stop failed", err));
+      
+      const currentScanner = scannerRef.current;
+      if (currentScanner && currentScanner.isScanning) {
+        currentScanner.stop()
+          .then(() => {
+            currentScanner.clear();
+          })
+          .catch((err: unknown) => {
+            console.error("Cleanup stop failed", err);
+          });
       }
     };
   }, [onScanSuccess]);
 
   const handleClose = async () => {
     // Explicitly stop the camera so the light turns off immediately
+    // We try to stop it here first to give the user immediate feedback (light off)
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
         await scannerRef.current.stop();
