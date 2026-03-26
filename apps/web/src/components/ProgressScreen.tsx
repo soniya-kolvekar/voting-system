@@ -7,20 +7,24 @@ interface ProgressScreenProps {
   onBackToVote?: () => void;
   onProfile?: () => void;
   onScanNext?: () => void;
-  unlockedStalls?: string[];
   ratings?: Record<string, number>;
+  ratedStalls?: Array<{ stallId: number, stallName: string, rating: number }>;
   totalCount?: number;
+  serverProgress?: number;
 }
 
 export default function ProgressScreen({
   onBackToVote,
   onProfile,
   onScanNext,
-  unlockedStalls = [],
   ratings = {},
-  totalCount = 5
+  ratedStalls = [],
+  totalCount = 13,
+  serverProgress = 0
 }: ProgressScreenProps) {
-  const ratedCount = Object.keys(ratings).length;
+  // Always use the server's synced progress as the ultimate source of truth, fallback to local if 0
+  const localRatedCount = Object.keys(ratings).length;
+  const ratedCount = Math.max(serverProgress, localRatedCount);
   const progressPercentage = Math.round((ratedCount / totalCount) * 100);
 
   return (
@@ -65,12 +69,28 @@ export default function ProgressScreen({
                 <span className="text-[10px] font-bold text-[#FF2D55] uppercase tracking-wider">{progressPercentage}% Complete</span>
               </div>
             </div>
-            <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
+            <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden mb-4">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercentage}%` }}
                 className="h-full bg-gradient-to-r from-[#FF2D55] to-[#FF6321]"
               />
+            </div>
+
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+
+                <p className="text-amber-900 text-sm font-bold">
+                  You are voting for the People’s Choice Award.
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2 bg-amber-100/50 p-3 rounded-lg border border-amber-200/50">
+                <span className="text-amber-600 mt-0.5 text-sm">⚠️</span>
+                <p className="text-amber-800 text-xs font-medium leading-relaxed">
+                  Your votes will be counted only if you rate at least <strong>10 different stalls</strong>.
+                </p>
+              </div>
             </div>
           </motion.div>
 
@@ -106,56 +126,50 @@ export default function ProgressScreen({
 
           <div className="space-y-3">
             {Array.from({ length: totalCount }).map((_, i) => {
-              const stallNumber = i + 1;
-              const stallId = stallNumber.toString();
-              const isUnlocked = unlockedStalls.includes(stallId);
-              const isRated = ratings[stallId] !== undefined;
-
-              const status = isRated ? 'rated' : (isUnlocked ? 'pending' : 'locked');
-              const displayId = String(stallNumber).padStart(2, '0');
+              // We map purely by index for the visual directory slots. 
+              // Now we explicitly match the DB stallId to the strict slot index so 6 maps to 6!
+              const expectedStallId = i + 1;
+              const ratedStall = ratedStalls.find(s => s.stallId === expectedStallId); 
+              
+              const status = ratedStall ? 'rated' : 'locked';
+              
+              const displayId = String(i + 1).padStart(2, '0');
+              const stallName = ratedStall ? ratedStall.stallName : 'Locked Stall';
 
               return (
                 <motion.div
-                  key={stallId}
+                  key={`slot-${displayId}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
                   className={`
                     p-4 rounded-2xl flex items-center justify-between border transition-all
-                    ${status === 'locked' ? 'bg-slate-50 border-transparent opacity-60' :
-                      status === 'pending' ? 'bg-white border-[#FF2D55] shadow-md' : 'bg-white border-slate-100 shadow-sm'}
+                    ${status === 'locked' ? 'bg-slate-50 border-transparent opacity-60' : 'bg-white border-slate-100 shadow-sm'}
                   `}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`
-                      w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm
-                      ${status === 'rated' ? 'bg-emerald-50 text-emerald-500' :
-                        status === 'pending' ? 'bg-[#FF2D55] text-white' : 'bg-slate-200 text-slate-400'}
+                      w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0
+                      ${status === 'rated' ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-200 text-slate-400'}
                     `}>
                       {displayId}
                     </div>
                     <div>
-                      <h4 className={`font-bold ${status === 'locked' ? 'text-slate-400' : 'text-slate-800'}`}>
-                        {status === 'locked' ? 'Locked Stall' : `Eco-Tech Stall #${displayId}`}
+                      <h4 className={`font-bold leading-tight ${status === 'locked' ? 'text-slate-400' : 'text-slate-800'}`}>
+                        {stallName}
                       </h4>
                       <span className="text-xs text-slate-400">
-                        {isRated ? 'Rating submitted' : status === 'pending' ? 'Ready to rate' : 'Scan QR to unlock'}
+                        {status === 'rated' ? 'Rating submitted' : 'Scan QR to unlock'}
                       </span>
                     </div>
                   </div>
 
                   <div>
-                    {status === 'rated' && (
+                    {status === 'rated' ? (
                       <div className="w-8 h-8 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full">
                         <CheckCircle2 className="w-5 h-5" />
                       </div>
-                    )}
-                    {status === 'pending' && (
-                      <div className="w-8 h-8 flex items-center justify-center bg-rose-50 text-rose-500 rounded-full">
-                        <Vote className="w-5 h-5" />
-                      </div>
-                    )}
-                    {status === 'locked' && (
+                    ) : (
                       <div className="w-8 h-8 flex items-center justify-center text-slate-300">
                         <Lock className="w-5 h-5" />
                       </div>

@@ -5,7 +5,7 @@ import { UserButton } from "@clerk/react";
 import Footer from "./Footer";
 
 interface RatingScreenProps {
-  stallId: string;
+  stallData: { id: number; name: string; description: string; logo: string | null };
   onBack?: () => void;
   onProgress?: () => void;
   onSubmitSuccess?: (rating: number) => void;
@@ -13,7 +13,7 @@ interface RatingScreenProps {
   totalCount?: number;
 }
 
-export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSuccess, ratedCount = 0, totalCount = 5 }: RatingScreenProps) {
+export default function RatingScreen({ stallData, onBack, onProgress, onSubmitSuccess, ratedCount = 0, totalCount = 13 }: RatingScreenProps) {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -88,24 +88,49 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
                 </div>
               </div>
               <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-3">Current Stall</span>
-              <h3 className="text-3xl font-bold font-display mb-3 leading-tight">Stall #{stallId.padStart(2, '0')}: Eco-Tech Solutions</h3>
-              <p className="text-white/90 text-sm leading-relaxed max-w-[280px] font-medium">
-                Innovating sustainable hardware for the next digital era.
-              </p>
+              <h3 className="text-3xl font-bold font-display mb-4 leading-tight w-full">{stallData.name}</h3>
+              <div className="w-full bg-black/10 rounded-xl p-4 md:p-6 backdrop-blur-md border border-white/10 shadow-inner">
+                <p className="text-white text-sm md:text-base leading-relaxed font-medium text-justify">
+                  {stallData.description || "No description provided."}
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>
 
         {/* Rating Grid */}
         <div className="px-6 mb-8">
-          <div className="text-center mb-6">
-            <h4 className="text-lg font-bold text-slate-800 mb-1">
-              {isSubmitted ? 'Your rating has been recorded' : 'Rate this stall from 0 to 10'}
-            </h4>
-            <p className="text-slate-400 text-xs">
-              {isSubmitted ? `You voted ${selectedRating}/10 for this stall` : 'Tap a number to cast your vote'}
-            </p>
-          </div>
+          {!isSubmitted ? (
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 flex flex-col gap-4 mb-6 shadow-sm text-left">
+              <div className="flex items-start gap-3">
+                <span className="text-amber-500 text-lg mt-0.5">🏆</span>
+                <div className="flex flex-col gap-1">
+                  <p className="text-amber-900 text-sm font-bold leading-tight">
+                    You are voting for the People’s Choice Award.
+                  </p>
+                  <p className="text-amber-800 text-sm font-medium">
+                    Please rate this Startup on a scale of 0–10.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-amber-100/50 p-3 rounded-lg border border-amber-200/50">
+                <span className="text-amber-600 mt-0.5 text-sm">⚠️</span>
+                <p className="text-amber-800 text-xs font-medium leading-relaxed">
+                  Your votes will be counted only if you rate at least <strong>10 different stalls</strong>.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center mb-6 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+              <h4 className="text-lg font-bold text-emerald-800 mb-1">
+                Your rating has been recorded ✔️
+              </h4>
+              <p className="text-emerald-600 text-sm font-medium mt-1">
+                You voted {selectedRating}/10 for this stall.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {ratings.map((rating) => (
