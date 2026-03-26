@@ -156,22 +156,30 @@ export default function App() {
   };
 
   const handleScanSuccess = async (decodedText: string) => {
-    let stallSlug = decodedText;
+    let stallSlug = decodedText.trim();
     
-    // Support QR codes containing the full URL like `dk24.org/:slug` or `https://dk24.org/:slug`
-    if (decodedText.includes('dk24.org/')) {
-      const parts = decodedText.split('dk24.org/');
-      // Extract everything after domain, and trim off trailing slashes or query parameters just in case
-      stallSlug = parts[parts.length - 1].split('?')[0].replace(/\/$/, "");
-    } else {
-      try {
-        if (decodedText.includes('stallId=')) {
-          const url = new URL(decodedText);
-          stallSlug = url.searchParams.get('stallId') || decodedText;
+    // Extremely robust parser that organically supports ANY domain name forever.
+    // E.g., "dk24.org/stall-1", "https://new-domain.com/stall-1", or "?stallId=stall-1"
+    try {
+      // Ensure the string looks like a URL so the URL parser doesn't crash on raw text
+      const urlToParse = stallSlug.includes('://') ? stallSlug : `https://${stallSlug}`;
+      const url = new URL(urlToParse);
+      
+      if (url.searchParams.has('stallId')) {
+        stallSlug = url.searchParams.get('stallId') || decodedText;
+      } else {
+        // Extract the very last segment of the path (instantly ignores the domain)
+        const pathSegments = url.pathname.split('/').filter(Boolean);
+        if (pathSegments.length > 0) {
+          stallSlug = pathSegments[pathSegments.length - 1];
+        } else {
+          stallSlug = decodedText; // Fallback to raw string
         }
-      } catch {
-        // Not a URL, use raw value
       }
+    } catch {
+      // Fallback if URL parsing fails entirely
+      const parts = stallSlug.split('?')[0].split('/').filter(Boolean);
+      stallSlug = parts[parts.length - 1] || decodedText;
     }
 
     try {
