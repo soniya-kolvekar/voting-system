@@ -11,6 +11,35 @@ export default function LoginScreen({ onStart }: LoginScreenProps) {
       className="h-[100dvh] relative select-none overflow-hidden flex flex-col bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/bg.webp')" }}
     >
+      {/* ── TOP LOGOS ── */}
+      <div className="absolute -top-4 left-5 right-5 flex items-center justify-between z-20 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="w-24 sm:w-32 md:w-36 drop-shadow-lg pointer-events-auto"
+        >
+          <img
+            src="/Nitte_logo.webp"
+            alt="Nitte"
+            className="w-full h-auto object-contain"
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="w-24 sm:w-32 md:w-36 drop-shadow-lg pointer-events-auto"
+        >
+          <img
+            src="/Fiza_logo.webp"
+            alt="Fiza"
+            className="w-full h-auto object-contain"
+          />
+        </motion.div>
+      </div>
+
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
 
         {/* ── LOGO ── */}
