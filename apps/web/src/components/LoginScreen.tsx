@@ -9,7 +9,7 @@ export default function LoginScreen({ onStart }: LoginScreenProps) {
   return (
     <div
       className="h-[100dvh] relative select-none overflow-hidden flex flex-col bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/bg.png')" }}
+      style={{ backgroundImage: "url('/bg.webp')" }}
     >
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
 
@@ -21,7 +21,7 @@ export default function LoginScreen({ onStart }: LoginScreenProps) {
           className="w-full max-w-[260px] sm:max-w-[340px] md:max-w-[420px]"
         >
           <img
-            src="/csf-logo.png"
+            src="/csf-logo.webp"
             alt="Coastal Startup Fest 2026"
             className="w-full h-auto object-contain"
           />
